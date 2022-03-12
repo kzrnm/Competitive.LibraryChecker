@@ -37,11 +37,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: checkout library-checker-problems
-        uses: actions/checkout@v2
-        with:
-          repository: yosupo06/library-checker-problems
-          path: ${{ env.libraryCheckerProblemsDir }}
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v1
         with:
@@ -57,18 +52,6 @@ jobs:
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
-      - uses: actions/cache@v2
-        name: pip cache
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-      - name: Install python dependencies
-        working-directory: ${{ env.libraryCheckerProblemsDir }}
-        run: |
-          python -m pip install --upgrade pip
-          pip install --user -r requirements.txt
       - name: Build
         run: |
           dotnet build ${{ inputs.target }} -c Release -o ./.competitive-library-checker
@@ -80,7 +63,6 @@ jobs:
         id: show-solvers
         shell: pwsh
         run: |
-          $libraryCheckerProblemsDir = "${{ env.libraryCheckerProblemsDir }}"
           function ShowSolovers {
               param (
                   [string]$AssemblyPath
@@ -107,10 +89,38 @@ jobs:
               Write-Output "::set-output name=solvers::$names"
           }
           ShowSolovers -AssemblyPath './.competitive-library-checker/${{ inputs.dll-name }}'
+      - uses: actions/cache@v2
+        id: problems-cache
+        name: Problems cache
+        with:
+          path: |
+            ${{ env.libraryCheckerProblemsDir }}/**
+            !${{ env.libraryCheckerProblemsDir }}/.git
+          key: "${{ runner.os }}-problems-${{ steps.show-solvers.outputs.solvers }}"
+      - name: checkout library-checker-problems
+        if: steps.problems-cache.outputs.cache-hit != 'true'
+        uses: actions/checkout@v2
+        with:
+          repository: yosupo06/library-checker-problems
+          path: ${{ env.libraryCheckerProblemsDir }}
+      - uses: actions/cache@v2
+        name: pip cache
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Install python dependencies
+        working-directory: ${{ env.libraryCheckerProblemsDir }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install --user -r requirements.txt
       - name: Generate
         shell: bash
         working-directory: ${{ env.libraryCheckerProblemsDir }}
+        if: steps.problems-cache.outputs.cache-hit != 'true'
         run: |
+          ulimit -s unlimited
           python generate.py -p ${{ steps.show-solvers.outputs.solvers }}
       - name: Run Library Checker
         shell: pwsh
