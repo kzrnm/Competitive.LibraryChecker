@@ -4,7 +4,9 @@ function RunLibraryChecker {
     )
     try {
         $assembly = [System.Reflection.Assembly]::LoadFrom($AssemblyPath)
+        Write-Output "::group::DefinedTypes"
         Write-Output $assembly.DefinedTypes
+        Write-Output "::endgroup::"
     }
     catch {
         Write-Output "::error::Failed to LoadFrom $AssemblyPath"
@@ -23,7 +25,11 @@ function RunLibraryChecker {
 
     try {
         Push-Location $libraryCheckerProblemsDir
-        python generate.py -p ($solvers | ForEach-Object Name)
+        Write-Output "::group::python generate.py"
+        $names = ($solvers | ForEach-Object Name)
+        Write-Output "Run: python generate.py -p $names"
+        python generate.py -p $names
+        Write-Output "::endgroup::"
     }
     catch {
         Write-Output "::error::Failed to generate"
@@ -35,11 +41,13 @@ function RunLibraryChecker {
 
     $failure = $false
     foreach ($solver in $solvers) {
+        Write-Output "::group::Run $($solver.Name)"
         $targetDir = [System.IO.DirectoryInfo](Get-ChildItem "$libraryCheckerProblemsDir" -Recurse -Include $solver.Name)
         if (-not [bool]$targetDir) {
             $failure = $true
             Write-Output "::error::Failed to get solver $($solver.Name)"
         }
+        Write-Output "::endgroup::"
     }
 
     if ($failure) {
