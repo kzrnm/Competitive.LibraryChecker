@@ -1,4 +1,6 @@
-﻿namespace Kzrnm.Competitive.LibraryChecker
+﻿using System.IO;
+
+namespace Kzrnm.Competitive.LibraryChecker
 {
     /// <summary>
     /// Solver
@@ -12,10 +14,10 @@
         /// <summary>
         /// Timeout of solver
         /// </summary>
-        int TimeoutSecond { get; }
+        double TimeoutSecond { get; }
         /// <summary>
         /// Run program
         /// </summary>
-        void Solve();
+        void Solve(Stream inputStream, Stream outputStream);
     }
 }

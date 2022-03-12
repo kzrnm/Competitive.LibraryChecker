@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ac-library-csharp" Version="1.11.1" />
+    <PackageReference Include="Competitive.IO" Version="0.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Kzrnm.Competitive.LibraryChecker\Kzrnm.Competitive.LibraryChecker.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,83 @@
+name: Competitive Library Checker
+
+on:
+  workflow_call:
+    inputs:
+      target:
+        required: true
+        description: build project
+        type: string
+      dll-name:
+        required: true
+        description: DLL name (e.g. ac-library-csharp.dll )
+        type: string
+      dotnet-version:
+        required: true
+        type: string
+      os:
+        description: Running os
+        required: false
+        default: ubuntu-latest
+        type: string
+      nuget-path:
+        description: path of $NUGET_PACKAGES
+        required: false
+        default: ""
+        type: string
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_NOLOGO: true
+  NUGET_XMLDOC_MODE: skip
+  NUGET_PACKAGES: ${{ inputs.nuget-path }}
+
+jobs:
+  library-checker:
+    runs-on: ${{ inputs.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ inputs.dotnet-version }}
+      - name: checkout library-checker-problems
+        uses: actions/checkout@v2
+        with:
+          repository: yosupo06/library-checker-problems
+          path: library-checker-problems
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+      - uses: actions/cache@v2
+        name: NuGet cache
+        with:
+          path: ${{ (inputs.nuget-path != '' && inputs.nuget-path ) || '~/.nuget/packages' }}
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+      - uses: actions/cache@v2
+        name: pip cache
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Install python dependencies
+        working-directory: library-checker-problems
+        run: |
+          python -m pip install --upgrade pip
+          pip install --user -r requirements.txt
+      - name: Build
+        run: |
+          dotnet build ${{ inputs.target }} -c Release -o ./.competitive-library-checker
+      - name: DLL exists?
+        shell: bash
+        run: |
+          [ -e ./.competitive-library-checker/${{ inputs.target }} ]
+      - name: Run Library Checker
+        shell: pwsh
+        run: |
+          . run-library-checker.ps1
+          RunLibraryChecker -AssemblyPath './.competitive-library-checker/${{ inputs.target }}'
