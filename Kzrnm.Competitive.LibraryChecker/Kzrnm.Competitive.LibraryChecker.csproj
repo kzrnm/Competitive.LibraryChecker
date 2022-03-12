@@ -8,8 +8,8 @@
 		<RepositoryType>git</RepositoryType>
 		<PackageProjectUrl>https://github.com/kzrnm/Competitive.LibraryChecker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/kzrnm/Competitive.LibraryChecker</RepositoryUrl>
-		<Version>1.0.1</Version>
-		<AssemblyVersion>1.0.1.001</AssemblyVersion>
+		<Version>1.1.0</Version>
+		<AssemblyVersion>1.1.0.001</AssemblyVersion>
 		<RepositoryCommit Condition="'$(GIT_COMMIT)' != ''">$(GIT_COMMIT)</RepositoryCommit>
 
 		<Description>Competitive programing library checker.</Description>
