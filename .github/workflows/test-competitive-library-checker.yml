@@ -20,3 +20,4 @@ jobs:
       target: LibraryCheckerRunner/LibraryCheckerRunner.csproj
       dll-name: LibraryCheckerRunner.dll
       dotnet-version: 3.1.x
+      timeout-coefficient: 1.2

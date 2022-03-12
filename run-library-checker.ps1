@@ -1,7 +1,8 @@
 $libraryCheckerProblemsDir = "$PSScriptRoot/library-checker-problems"
 function RunLibraryChecker {
     param (
-        [string]$AssemblyPath
+        [string]$AssemblyPath,
+        [double]$TimeoutCoefficient = 1.0
     )
     try {
         $assembly = [System.Reflection.Assembly]::LoadFrom($AssemblyPath)
@@ -42,7 +43,7 @@ function RunLibraryChecker {
     foreach ($solver in $solvers) {
         Write-Output "::group::Run $($solver.Name)"
         try {
-            RunCheckers -solver $solver
+            RunCheckers -solver $solver -TimeoutCoefficient $TimeoutCoefficient
         }
         catch {
             $message = $_.Exception.Message
@@ -60,10 +61,11 @@ function RunLibraryChecker {
 
 function RunCheckers {
     param (
-        [Kzrnm.Competitive.LibraryChecker.ICompetitiveSolver]$solver
+        [Kzrnm.Competitive.LibraryChecker.ICompetitiveSolver]$solver,
+        [double]$TimeoutCoefficient = 1.0
     )
     $targetDir = [System.IO.DirectoryInfo](Get-ChildItem "$libraryCheckerProblemsDir" -Recurse -Include $solver.Name)
-    Write-Output "targetDir: $targetDir"
+    Write-Output "targetDir: $targetDir TimeoutCoefficient: $TimeoutCoefficient"
     if (-not $targetDir) {
         throw "Failed to get solver $($solver.Name)"
     }
@@ -74,7 +76,7 @@ function RunCheckers {
         $outStream = [System.IO.FileStream]::new("$targetDir/got/$fileName.got", [System.IO.FileMode]::Create, [System.IO.FileAccess]::ReadWrite)
         try {
             Write-Output "Run: $($solver.Name) $fileName"
-            [Kzrnm.Competitive.LibraryChecker.CompetitiveSolvers]::RunSolverWithTimeout($solver, $inStream, $outStream, 0.00002)
+            [Kzrnm.Competitive.LibraryChecker.CompetitiveSolvers]::RunSolverWithTimeout($solver, $inStream, $outStream, $TimeoutCoefficient)
         }
         catch {
             throw "timeout $($solver.Name) $fileName"

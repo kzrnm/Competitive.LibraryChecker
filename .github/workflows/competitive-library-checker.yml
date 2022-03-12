@@ -19,6 +19,10 @@ on:
         required: false
         default: ubuntu-latest
         type: string
+      timeout-coefficient:
+        required: false
+        default: 1.0
+        type: number
       nuget-path:
         description: path of $NUGET_PACKAGES
         required: false
@@ -80,4 +84,4 @@ jobs:
         shell: pwsh
         run: |
           . ./run-library-checker.ps1
-          RunLibraryChecker -AssemblyPath './.competitive-library-checker/${{ inputs.dll-name }}'
+          RunLibraryChecker -AssemblyPath './.competitive-library-checker/${{ inputs.dll-name }}' -TimeoutCoefficient ${{ inputs.timeout-coefficient }}
