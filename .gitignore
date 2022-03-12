@@ -398,3 +398,4 @@ FodyWeavers.xsd
 *.sln.iml
 
 /.competitive-library-checker
+/library-checker-problems

@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Kzrnm.Competitive.LibraryChecker
 {
@@ -53,18 +53,29 @@ namespace Kzrnm.Competitive.LibraryChecker
         /// Run <see cref="ICompetitiveSolver"/> class.
         /// </summary>
         public static void RunSolverWithTimeout(Assembly assembly, string name, Stream inputStream, Stream outputStream)
-            => RunSolverWithTimeout(assembly, name, inputStream, outputStream, 1.0);
+            => RunSolverWithTimeout(GetSolver(assembly, name), inputStream, outputStream);
+
+        /// <summary>
+        /// Run <see cref="ICompetitiveSolver"/> class.
+        /// </summary>
+        public static void RunSolverWithTimeout(ICompetitiveSolver solver, Stream inputStream, Stream outputStream)
+            => RunSolverWithTimeout(solver, inputStream, outputStream, 1.0);
 
         /// <summary>
         /// Run <see cref="ICompetitiveSolver"/> class.
         /// </summary>
         public static void RunSolverWithTimeout(Assembly assembly, string name, Stream inputStream, Stream outputStream, double timeoutCoefficient = 1.0)
+            => RunSolverWithTimeout(GetSolver(assembly, name), inputStream, outputStream, timeoutCoefficient);
+
+        /// <summary>
+        /// Run <see cref="ICompetitiveSolver"/> class.
+        /// </summary>
+        public static void RunSolverWithTimeout(ICompetitiveSolver solver, Stream inputStream, Stream outputStream, double timeoutCoefficient = 1.0)
         {
-            var solver = GetSolver(assembly, name);
             var task = Task.Run(() => solver.Solve(inputStream, outputStream));
 
             if (!task.Wait(TimeSpan.FromSeconds(solver.TimeoutSecond * timeoutCoefficient)))
-                throw new Exception($"Solver({name}) is timed out!");
+                throw new Exception($"Solver({solver.Name}) is timed out!");
         }
     }
 }
