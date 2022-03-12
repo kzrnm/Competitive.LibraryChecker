@@ -89,7 +89,7 @@ jobs:
                   Write-Output "::error::Failed to get solvers"
                   exit 1
               }
-              $names = ($solvers | ForEach-Object Name)
+              $names = ($solvers | ForEach-Object Name | Sort-Object -Unique)
               Write-Output "::set-output name=solvers::$names"
           }
           ShowSolovers -AssemblyPath './.competitive-library-checker/${{ inputs.dll-name }}'
