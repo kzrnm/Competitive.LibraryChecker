@@ -40,4 +40,20 @@ namespace LibraryCheckerRunner
             }
         }
     }
+    public class FloorSumSolver : ICompetitiveSolver
+    {
+        public string Name => "sum_of_floor_of_linear";
+        public double TimeoutSecond => 5;
+        public void Solve(Stream inputStream, Stream outputStream)
+        {
+            var utf8 = new System.Text.UTF8Encoding(false);
+            var cr = new ConsoleReader(inputStream, utf8);
+            using var cw = new ConsoleWriter(outputStream, utf8);
+            int T = cr;
+            for (int i = 0; i < T; i++)
+            {
+                cw.WriteLine(MathLib.FloorSum(cr, cr, cr, cr));
+            }
+        }
+    }
 }
