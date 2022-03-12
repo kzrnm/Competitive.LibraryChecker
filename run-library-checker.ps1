@@ -1,4 +1,4 @@
-$libraryCheckerProblemsDir = "$PSScriptRoot/library-checker-problems"
+$libraryCheckerProblemsDir = "$PSScriptRoot/.library-checker-problems"
 function RunLibraryChecker {
     param (
         [string]$AssemblyPath,
