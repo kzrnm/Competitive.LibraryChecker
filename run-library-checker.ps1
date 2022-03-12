@@ -19,9 +19,23 @@ function RunLibraryChecker {
         exit 1
     }
 
+    $libraryCheckerProblemsDir = "$PSScriptRoot/library-checker-problems"
+
+    try {
+        Push-Location $libraryCheckerProblemsDir
+        python generate.py -p ($solvers | ForEach-Object Name)
+    }
+    catch {
+        Write-Output "::error::Failed to generate"
+        exit 1
+    }
+    finally {
+        Pop-Location
+    }
+
     $failure = $false
     foreach ($solver in $solvers) {
-        $targetDir = [System.IO.DirectoryInfo](Get-ChildItem "$PSScriptRoot/library-checker-problems" -Recurse -Include ($solver.Name+"2"))
+        $targetDir = [System.IO.DirectoryInfo](Get-ChildItem "$libraryCheckerProblemsDir" -Recurse -Include $solver.Name)
         if (-not [bool]$targetDir) {
             $failure = $true
             Write-Output "::error::Failed to get solver $($solver.Name)"
