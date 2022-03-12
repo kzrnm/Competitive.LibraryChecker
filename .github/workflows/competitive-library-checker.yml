@@ -75,8 +75,6 @@ jobs:
         shell: bash
         run: |
           [ -e ./.competitive-library-checker/${{ inputs.dll-name }} ]
-      - run: ulimit -s unlimited
-        shell: bash
       - name: Run Library Checker
         shell: pwsh
         run: |
@@ -184,4 +182,5 @@ jobs:
                   }
               }
           }
+          bash -c 'ulimit -s unlimited'
           RunLibraryChecker -AssemblyPath './.competitive-library-checker/${{ inputs.dll-name }}' -TimeoutCoefficient ${{ inputs.timeout-coefficient }}
