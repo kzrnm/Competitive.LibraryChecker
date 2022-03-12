@@ -23,6 +23,10 @@ on:
         required: false
         default: ""
         type: string
+      library-checker-problems-repository:
+        required: false
+        default: yosupo06/library-checker-problems
+        type: string
 
 env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
@@ -101,7 +105,7 @@ jobs:
         if: steps.problems-cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v2
         with:
-          repository: yosupo06/library-checker-problems
+          repository: ${{ inputs.library-checker-problems-repository }}
           path: ${{ env.libraryCheckerProblemsDir }}
       - uses: actions/cache@v2
         name: pip cache
