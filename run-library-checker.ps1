@@ -38,29 +38,34 @@ function RunLibraryChecker {
         Pop-Location
     }
 
-    $failure = $false
+    $failedSolvers = [System.Collections.Generic.List[string]]::new()
     foreach ($solver in $solvers) {
         Write-Output "::group::Run $($solver.Name)"
-        if (RunCheckers -solver $solver) {
-            $failure = $true
+        try {
+            RunCheckers -solver $solver
+        }
+        catch {
+            $message = $_.Exception.Message
+            $failedSolvers.Add($solver.Name)
+            Write-Output "::error::$message"
         }
         Write-Output "::endgroup::"
     }
 
-    if ($failure) {
+    if ($failedSolvers.Count -gt 0) {
+        Write-Output "::error::Failed solvers: $($failedSolvers -join ', ')"
         exit 1
     }
 }
 
 function RunCheckers {
-    [OutputType([bool])] # if true, return error
     param (
         [Kzrnm.Competitive.LibraryChecker.ICompetitiveSolver]$solver
     )
     $targetDir = [System.IO.DirectoryInfo](Get-ChildItem "$libraryCheckerProblemsDir" -Recurse -Include $solver.Name)
+    Write-Output "targetDir: $targetDir"
     if (-not $targetDir) {
-        Write-Output "::error::Failed to get solver $($solver.Name)"
-        return $true
+        throw "Failed to get solver $($solver.Name)"
     }
     mkdir "$targetDir/got"
     foreach ($inputFile in (Get-ChildItem "$targetDir/in/*.in")) {
@@ -72,8 +77,7 @@ function RunCheckers {
             [Kzrnm.Competitive.LibraryChecker.CompetitiveSolvers]::RunSolverWithTimeout($solver, $inStream, $outStream, 0.00002)
         }
         catch {
-            Write-Output "::error::timeout $($solver.Name) $fileName"
-            return $true
+            throw "timeout $($solver.Name) $fileName"
         }
         finally {
             $inStream.Dispose()
@@ -85,13 +89,11 @@ function RunCheckers {
             Write-Output "Check: $($solver.Name) $fileName"
             . "$targetDir/checker" "$targetDir/in/$fileName.in" "$targetDir/out/$fileName.out" "$targetDir/got/$fileName.got"
             if ($LASTEXITCODE -ne 0) {
-                Write-Output "::error::Failed to check $($solver.Name) $fileName"
-                return $true
+                throw "Failed to check $($solver.Name) $fileName"
             }
         }
         catch {
-            Write-Output "::error::Failed to check $($solver.Name) $fileName"
-            return $true
+            throw "Failed to check $($solver.Name) $fileName"
         }
         finally {
             Pop-Location
