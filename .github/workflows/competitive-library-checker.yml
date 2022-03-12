@@ -30,6 +30,7 @@ env:
   DOTNET_NOLOGO: true
   NUGET_XMLDOC_MODE: skip
   NUGET_PACKAGES: ${{ inputs.nuget-path }}
+  libraryCheckerProblemsDir: .library-checker-problems
 
 jobs:
   library-checker:
@@ -44,7 +45,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: yosupo06/library-checker-problems
-          path: .library-checker-problems
+          path: ${{ env.libraryCheckerProblemsDir }}
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
@@ -64,7 +65,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
       - name: Install python dependencies
-        working-directory: .library-checker-problems
+        working-directory: ${{ env.libraryCheckerProblemsDir }}
         run: |
           python -m pip install --upgrade pip
           pip install --user -r requirements.txt
@@ -75,10 +76,47 @@ jobs:
         shell: bash
         run: |
           [ -e ./.competitive-library-checker/${{ inputs.dll-name }} ]
+      - name: Show Solvers
+        id: show-solvers
+        shell: pwsh
+        run: |
+          $libraryCheckerProblemsDir = "${{ env.libraryCheckerProblemsDir }}"
+          function ShowSolovers {
+              param (
+                  [string]$AssemblyPath
+              )
+              try {
+                  $assembly = [System.Reflection.Assembly]::LoadFrom($AssemblyPath)
+                  Write-Output "::group::DefinedTypes"
+                  Write-Output $assembly.DefinedTypes
+                  Write-Output "::endgroup::"
+              }
+              catch {
+                  Write-Output "::error::Failed to LoadFrom $AssemblyPath"
+                  exit 1
+              }
+
+              try {
+                  $solvers = [Kzrnm.Competitive.LibraryChecker.CompetitiveSolvers]::GetSolvers($assembly)
+              }
+              catch {
+                  Write-Output "::error::Failed to get solvers"
+                  exit 1
+              }
+              $names = ($solvers | ForEach-Object Name)
+              Write-Output "::set-output name=solvers::$names"
+          }
+          ShowSolovers -AssemblyPath './.competitive-library-checker/${{ inputs.dll-name }}'
+      - name: Generate
+        shell: bash
+        working-directory: ${{ env.libraryCheckerProblemsDir }}
+        run: |
+          ulimit -s unlimited
+          python generate.py -p ${{ steps.show-solvers.outputs.solvers }}
       - name: Run Library Checker
         shell: pwsh
         run: |
-          $libraryCheckerProblemsDir = "./.library-checker-problems"
+          $libraryCheckerProblemsDir = "${{ env.libraryCheckerProblemsDir }}"
           function RunLibraryChecker {
               param (
                   [string]$AssemblyPath,
@@ -101,22 +139,6 @@ jobs:
               catch {
                   Write-Output "::error::Failed to get solvers"
                   exit 1
-              }
-
-              try {
-                  Push-Location $libraryCheckerProblemsDir
-                  Write-Output "::group::python generate.py"
-                  $names = ($solvers | ForEach-Object Name)
-                  Write-Output "Run: python generate.py -p $names"
-                  python generate.py -p $names
-                  Write-Output "::endgroup::"
-              }
-              catch {
-                  Write-Output "::error::Failed to generate"
-                  exit 1
-              }
-              finally {
-                  Pop-Location
               }
 
               $failedSolvers = [System.Collections.Generic.List[string]]::new()
@@ -182,5 +204,4 @@ jobs:
                   }
               }
           }
-          bash -c 'ulimit -s unlimited'
           RunLibraryChecker -AssemblyPath './.competitive-library-checker/${{ inputs.dll-name }}' -TimeoutCoefficient ${{ inputs.timeout-coefficient }}
