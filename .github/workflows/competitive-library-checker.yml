@@ -37,15 +37,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: ${{ inputs.dotnet-version }}
       - name: checkout library-checker-problems
         uses: actions/checkout@v2
         with:
           repository: yosupo06/library-checker-problems
           path: ${{ env.libraryCheckerProblemsDir }}
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ inputs.dotnet-version }}
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
@@ -111,7 +111,6 @@ jobs:
         shell: bash
         working-directory: ${{ env.libraryCheckerProblemsDir }}
         run: |
-          ulimit -s unlimited
           python generate.py -p ${{ steps.show-solvers.outputs.solvers }}
       - name: Run Library Checker
         shell: pwsh
