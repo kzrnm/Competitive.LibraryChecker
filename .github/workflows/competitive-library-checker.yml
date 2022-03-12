@@ -14,11 +14,6 @@ on:
       dotnet-version:
         required: true
         type: string
-      os:
-        description: Running os
-        required: false
-        default: ubuntu-latest
-        type: string
       timeout-coefficient:
         required: false
         default: 1.0
@@ -38,7 +33,7 @@ env:
 
 jobs:
   library-checker:
-    runs-on: ${{ inputs.os }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: Setup .NET SDK
@@ -80,6 +75,8 @@ jobs:
         shell: bash
         run: |
           [ -e ./.competitive-library-checker/${{ inputs.dll-name }} ]
+      - run: ulimit -s unlimited
+        shell: bash
       - name: Run Library Checker
         shell: pwsh
         run: |
