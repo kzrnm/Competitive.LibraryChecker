@@ -75,9 +75,9 @@ jobs:
       - name: DLL exists?
         shell: bash
         run: |
-          [ -e ./.competitive-library-checker/${{ inputs.target }} ]
+          [ -e ./.competitive-library-checker/${{ inputs.dll-name }} ]
       - name: Run Library Checker
         shell: pwsh
         run: |
-          . run-library-checker.ps1
-          RunLibraryChecker -AssemblyPath './.competitive-library-checker/${{ inputs.target }}'
+          . ./run-library-checker.ps1
+          RunLibraryChecker -AssemblyPath './.competitive-library-checker/${{ inputs.dll-name }}'
